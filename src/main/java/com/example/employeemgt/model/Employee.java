@@ -16,6 +16,8 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 @Table(name = "employees")
@@ -33,11 +35,13 @@ public class Employee {
 
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	@Temporal(TemporalType.DATE)
+	@PastOrPresent(message = "Date of birth cannot be in the future")
 	private Date dob;
 
 	@Transient
 	private int age;
 
+	@PositiveOrZero(message = "Salary cannot be negative")
 	private Double salary;
 
 	private boolean status = true;

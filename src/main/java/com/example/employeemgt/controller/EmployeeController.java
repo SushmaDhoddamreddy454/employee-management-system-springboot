@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.employeemgt.model.Employee;
 import com.example.employeemgt.repository.EmployeeRepository;
+import com.example.employeemgt.service.EmployeeService;
 
 import jakarta.validation.Valid;
 
@@ -27,6 +28,9 @@ public class EmployeeController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private EmployeeService employeeService;
+
     @GetMapping
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
@@ -34,7 +38,7 @@ public class EmployeeController {
 
     @PostMapping
     public Employee createEmployee(@Valid @RequestBody Employee employee) {
-        return employeeRepository.save(employee);
+        return employeeService.createEmployee(employee);
     }
 
     @GetMapping("/{id}")
@@ -46,16 +50,7 @@ public class EmployeeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee employeeDetails) {
-        Employee employee = employeeRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Employee not found: " + id));
-        
-        employee.setName(employeeDetails.getName());
-        employee.setEmail(employeeDetails.getEmail());
-        employee.setDob(employeeDetails.getDob());
-        employee.setSalary(employeeDetails.getSalary());
-        employee.setStatus(employeeDetails.isStatus());
-        
-        Employee updatedEmployee = employeeRepository.save(employee);
+        Employee updatedEmployee = employeeService.updateEmployee(id, employeeDetails);
         return ResponseEntity.ok(updatedEmployee);
     }
 
