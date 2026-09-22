@@ -1,4 +1,8 @@
 const API_URL = 'http://localhost:8080/api/employees';
+let currentPage = 0;
+let pageSize = 10;
+let currentSearch = '';
+let totalPages = 0;
 let employeeModal;
 let toastNotification;
 
@@ -37,9 +41,19 @@ function showNotification(title, message, success = true) {
 }
 
 function loadEmployees() {
-    fetch(API_URL)
+    let requestUrl = `${API_URL}?page=${currentPage}&size=${pageSize}`;
+
+    if (currentSearch.trim()) {
+        requestUrl += `&search=${encodeURIComponent(currentSearch.trim())}`;
+    }
+
+    fetch(requestUrl)
         .then(response => response.json())
-        .then(employees => {
+        .then(data => {
+            const employees = data.content || [];
+            currentPage = data.number;
+            totalPages = data.totalPages;
+            updatePaginationControls();
             const tableBody = document.getElementById('employeeTableBody');
             tableBody.innerHTML = '';
             
@@ -174,20 +188,39 @@ function deleteEmployee(id) {
 }
 
 function searchEmployees() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#employeeTableBody tr');
+    currentSearch = document.getElementById('searchInput').value;
+    currentPage = 0;
+    loadEmployees();
+}
 
-    rows.forEach(row => {
-        const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-        const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-        
-        // Filter based on name or email
-        if (name.includes(searchTerm) || email.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+function updatePaginationControls() {
+    const prevButton = document.getElementById('prevPageBtn');
+    const nextButton = document.getElementById('nextPageBtn');
+    const pageInfo = document.getElementById('pageInfo');
+
+    if (!prevButton || !nextButton || !pageInfo) {
+        return;
+    }
+
+    prevButton.disabled = currentPage === 0;
+    nextButton.disabled = totalPages === 0 || currentPage >= totalPages - 1;
+    pageInfo.textContent = totalPages === 0
+        ? 'Page 0 of 0'
+        : `Page ${currentPage + 1} of ${totalPages}`;
+}
+
+function goToPreviousPage() {
+    if (currentPage > 0) {
+        currentPage--;
+        loadEmployees();
+    }
+}
+
+function goToNextPage() {
+    if (currentPage < totalPages - 1) {
+        currentPage++;
+        loadEmployees();
+    }
 }
 
 function formatDate(dateString) {

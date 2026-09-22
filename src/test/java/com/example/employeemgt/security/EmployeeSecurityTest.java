@@ -2,6 +2,8 @@ package com.example.employeemgt.security;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -18,6 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -83,7 +88,13 @@ public class EmployeeSecurityTest {
 
     @Test
     void employeeCanGetCollection() throws Exception {
-        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(sampleEmployee()));
+        Page<Employee> employeePage = new PageImpl<>(
+                Collections.singletonList(sampleEmployee()),
+                PageRequest.of(0, 10),
+                1);
+
+        when(employeeService.getEmployees(eq(0), eq(10), isNull()))
+                .thenReturn(employeePage);
 
         mockMvc.perform(get("/api/employees").with(httpBasic("employee-demo", "EmployeeDemo#2026")))
                 .andExpect(status().isOk());
@@ -123,7 +134,13 @@ public class EmployeeSecurityTest {
 
     @Test
     void hrCanGet() throws Exception {
-        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(sampleEmployee()));
+        Page<Employee> employeePage = new PageImpl<>(
+                Collections.singletonList(sampleEmployee()),
+                PageRequest.of(0, 10),
+                1);
+
+        when(employeeService.getEmployees(eq(0), eq(10), isNull()))
+                .thenReturn(employeePage);
 
         mockMvc.perform(get("/api/employees").with(httpBasic("hr-demo", "HrDemo#2026")))
                 .andExpect(status().isOk());
@@ -159,7 +176,13 @@ public class EmployeeSecurityTest {
 
     @Test
     void adminCanGet() throws Exception {
-        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(sampleEmployee()));
+        Page<Employee> employeePage = new PageImpl<>(
+                Collections.singletonList(sampleEmployee()),
+                PageRequest.of(0, 10),
+                1);
+
+        when(employeeService.getEmployees(eq(0), eq(10), isNull()))
+                .thenReturn(employeePage);
 
         mockMvc.perform(get("/api/employees").with(httpBasic("admin-demo", "AdminDemo#2026")))
                 .andExpect(status().isOk());

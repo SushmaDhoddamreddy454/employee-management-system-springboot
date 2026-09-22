@@ -1,7 +1,11 @@
 package com.example.employeemgt.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.employeemgt.model.Employee;
@@ -38,5 +42,16 @@ public class EmployeeService {
         employee.setStatus(employeeDetails.isStatus());
 
         return employeeRepository.save(employee);
+    }
+
+    public Page<Employee> getEmployees(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (!StringUtils.hasText(search)) {
+            return employeeRepository.findAll(pageable);
+        }
+
+        return employeeRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                search, search, pageable);
     }
 }

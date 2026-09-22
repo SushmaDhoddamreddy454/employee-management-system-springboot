@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.employeemgt.model.Employee;
@@ -96,5 +101,69 @@ class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.updateEmployee(99L, employee))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Employee not found");
+    }
+
+    @Test
+    void getEmployeesReturnsRepositoryPageWhenSearchIsNull() {
+        Page<Employee> expectedPage = new PageImpl<>(
+                Collections.singletonList(employee),
+                PageRequest.of(0, 10),
+                1);
+
+        when(employeeRepository.findAll(PageRequest.of(0, 10)))
+                .thenReturn(expectedPage);
+
+        Page<Employee> result = employeeService.getEmployees(0, 10, null);
+
+        assertThat(result).isEqualTo(expectedPage);
+
+        verify(employeeRepository).findAll(PageRequest.of(0, 10));
+        verify(employeeRepository, never())
+                .findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        anyString(), anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void getEmployeesUsesFindAllWhenSearchIsBlank() {
+        Page<Employee> expectedPage = new PageImpl<>(
+                Collections.singletonList(employee),
+                PageRequest.of(0, 10),
+                1);
+
+        when(employeeRepository.findAll(PageRequest.of(0, 10)))
+                .thenReturn(expectedPage);
+
+        Page<Employee> result = employeeService.getEmployees(0, 10, "   ");
+
+        assertThat(result).isEqualTo(expectedPage);
+
+        verify(employeeRepository).findAll(PageRequest.of(0, 10));
+        verify(employeeRepository, never())
+                .findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        anyString(), anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void getEmployeesDelegatesToSearchRepositoryMethodWhenSearchProvided() {
+        PageRequest pageable = PageRequest.of(0, 10);
+        Page<Employee> expectedPage =
+                new PageImpl<>(Collections.singletonList(employee), pageable, 1);
+
+        when(employeeRepository
+                .findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        "john", "john", pageable))
+                .thenReturn(expectedPage);
+
+        Page<Employee> result =
+                employeeService.getEmployees(0, 10, "john");
+
+        assertThat(result).isEqualTo(expectedPage);
+
+        verify(employeeRepository)
+                .findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        "john", "john", pageable);
+
+        verify(employeeRepository, never())
+                .findAll(any(Pageable.class));
     }
 }
