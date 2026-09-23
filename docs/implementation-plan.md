@@ -36,6 +36,8 @@ Independent of Phases 1–4 functionally, but sequenced after them so that envir
 **Phase 6 — Automated Testing (EPIC-05)**
 Formalizes and completes coverage across all preceding phases. Some unit/integration tests are written incrementally during Phases 1–4 (Section 2); Phase 6 is where Cucumber/Selenium UI coverage (US-05-03) and any remaining gaps are completed.
 
+**EPIC-05 execution status:** `selenium-java 4.49.0` was added as a test-scope dependency and `SeleniumAuthenticationTest.java` was created to exercise admin authentication via `HasAuthentication`/`UsernameAndPassword`. Maven test compilation (`test-compile`) was verified successfully. Live Selenium browser execution was **not performed**: the Spring Boot application requires the configured MySQL runtime, which was unavailable in the local environment, and Human Review decided not to provision/install/configure MySQL solely for this feasibility test. **EPIC-05 status: FEASIBILITY COMPLETE — RUNTIME EXECUTION DEFERRED DUE TO ENVIRONMENT LIMITATION.** This is not a claim that the Selenium E2E test passed at runtime; MySQL provisioning and live E2E execution remain deferred/future work.
+
 ## 4. Story-by-Story Implementation Plan
 
 ### EPIC-01 — Authentication & Role-Based Access Control
